@@ -12,7 +12,10 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleImagesSelect = (files: File[]) => {
-    setSelectedImages(files);
+    setSelectedImages(prev => {
+      const newImages = [...prev, ...files];
+      return newImages.slice(0, 4); // Max 4 images
+    });
     setGeneratedImageUrl(null);
   };
 

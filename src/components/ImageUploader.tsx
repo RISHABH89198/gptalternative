@@ -25,17 +25,19 @@ export const ImageUploader = ({ onImagesSelect, selectedImages, onClear }: Image
     e.preventDefault();
     setIsDragging(false);
     
-    const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/')).slice(0, 4);
+    const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
     if (files.length > 0) {
       onImagesSelect(files);
     }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files ? Array.from(e.target.files).slice(0, 4) : [];
+    const files = e.target.files ? Array.from(e.target.files) : [];
     if (files.length > 0) {
       onImagesSelect(files);
     }
+    // Reset input so same file can be selected again
+    if (e.target) e.target.value = '';
   };
 
   const handleClick = () => {
@@ -77,24 +79,54 @@ export const ImageUploader = ({ onImagesSelect, selectedImages, onClear }: Image
           />
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4">
-          {selectedImages.map((image, index) => (
-            <div key={index} className="glass rounded-2xl p-4 relative">
-              <Button
-                onClick={() => onClear(index)}
-                variant="destructive"
-                size="icon"
-                className="absolute top-2 right-2 z-10 shadow-lg"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-              <img
-                src={URL.createObjectURL(image)}
-                alt={`Selected ${index + 1}`}
-                className="w-full h-auto rounded-xl"
-              />
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            {selectedImages.map((image, index) => (
+              <div key={index} className="glass rounded-2xl p-4 relative">
+                <Button
+                  onClick={() => onClear(index)}
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-2 right-2 z-10 shadow-lg"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+                <img
+                  src={URL.createObjectURL(image)}
+                  alt={`Selected ${index + 1}`}
+                  className="w-full h-auto rounded-xl"
+                />
+              </div>
+            ))}
+          </div>
+          {selectedImages.length < 4 && (
+            <div
+              onClick={handleClick}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`
+                glass cursor-pointer rounded-2xl p-8 text-center transition-all duration-300
+                hover:bg-card/80 hover:border-primary/50
+                ${isDragging ? 'border-primary bg-primary/10 scale-[1.02]' : ''}
+              `}
+            >
+              <div className="flex flex-col items-center gap-3">
+                <Upload className="h-6 w-6 text-primary" />
+                <p className="text-sm text-muted-foreground">
+                  Add more images ({selectedImages.length}/4)
+                </p>
+              </div>
             </div>
-          ))}
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleFileSelect}
+            className="hidden"
+          />
         </div>
       )}
     </div>
