@@ -7,35 +7,38 @@ import { toast } from "sonner";
 import { Wand2 } from "lucide-react";
 
 const Index = () => {
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [generatedImageUrls, setGeneratedImageUrls] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleImageSelect = (file: File) => {
-    setSelectedImage(file);
-    setGeneratedImageUrl(null);
+  const handleImagesSelect = (files: File[]) => {
+    setSelectedImages(files);
+    setGeneratedImageUrls([]);
   };
 
-  const handleClearImage = () => {
-    setSelectedImage(null);
-    setGeneratedImageUrl(null);
+  const handleClearImage = (index: number) => {
+    setSelectedImages(prev => prev.filter((_, i) => i !== index));
+    setGeneratedImageUrls([]);
   };
 
   const handleGenerate = async (prompt: string) => {
-    if (!selectedImage) {
-      toast.error("Please upload an image first");
+    if (selectedImages.length === 0) {
+      toast.error("Please upload at least one image first");
       return;
     }
 
     setIsLoading(true);
+    const urls: string[] = [];
+    
     try {
-      // Convert image to base64
-      const reader = new FileReader();
-      reader.readAsDataURL(selectedImage);
-      
-      reader.onload = async () => {
-        const base64Image = reader.result as string;
-        
+      for (const image of selectedImages) {
+        const base64Image = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(image);
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+        });
+
         const { data, error } = await supabase.functions.invoke('generate-image', {
           body: {
             imageData: base64Image,
@@ -46,19 +49,17 @@ const Index = () => {
         if (error) throw error;
 
         if (data?.imageUrl) {
-          setGeneratedImageUrl(data.imageUrl);
-          toast.success("Image generated successfully!");
+          urls.push(data.imageUrl);
         } else {
           throw new Error("No image URL in response");
         }
-      };
+      }
 
-      reader.onerror = () => {
-        throw new Error("Failed to read image file");
-      };
+      setGeneratedImageUrls(urls);
+      toast.success(`${urls.length} image(s) generated successfully!`);
     } catch (error: any) {
       console.error('Generation error:', error);
-      toast.error(error.message || "Failed to generate image");
+      toast.error(error.message || "Failed to generate images");
     } finally {
       setIsLoading(false);
     }
@@ -85,17 +86,21 @@ const Index = () => {
         {/* Main Content */}
         <div className="grid gap-8 animate-in fade-in slide-in-from-bottom duration-700">
           <ImageUploader
-            onImageSelect={handleImageSelect}
-            selectedImage={selectedImage}
+            onImagesSelect={handleImagesSelect}
+            selectedImages={selectedImages}
             onClear={handleClearImage}
           />
 
-          {selectedImage && (
+          {selectedImages.length > 0 && (
             <PromptInput onGenerate={handleGenerate} isLoading={isLoading} />
           )}
 
-          {generatedImageUrl && (
-            <GeneratedImage imageUrl={generatedImageUrl} />
+          {generatedImageUrls.length > 0 && (
+            <div className="grid grid-cols-2 gap-4">
+              {generatedImageUrls.map((url, index) => (
+                <GeneratedImage key={index} imageUrl={url} />
+              ))}
+            </div>
           )}
         </div>
 

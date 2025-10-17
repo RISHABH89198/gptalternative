@@ -22,9 +22,9 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    console.log('Generating image with prompt:', prompt);
+    console.log('Generating HD image with prompt:', prompt);
 
-    // Call Lovable AI image generation endpoint
+    // Call Lovable AI image generation endpoint with HD quality
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -39,7 +39,7 @@ serve(async (req) => {
             content: [
               {
                 type: 'text',
-                text: prompt
+                text: `${prompt}. Generate in high definition with maximum quality and detail.`
               },
               {
                 type: 'image_url',

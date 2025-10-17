@@ -3,12 +3,12 @@ import { Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ImageUploaderProps {
-  onImageSelect: (file: File) => void;
-  selectedImage: File | null;
-  onClear: () => void;
+  onImagesSelect: (files: File[]) => void;
+  selectedImages: File[];
+  onClear: (index: number) => void;
 }
 
-export const ImageUploader = ({ onImageSelect, selectedImage, onClear }: ImageUploaderProps) => {
+export const ImageUploader = ({ onImagesSelect, selectedImages, onClear }: ImageUploaderProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -25,16 +25,16 @@ export const ImageUploader = ({ onImageSelect, selectedImage, onClear }: ImageUp
     e.preventDefault();
     setIsDragging(false);
     
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) {
-      onImageSelect(file);
+    const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/')).slice(0, 4);
+    if (files.length > 0) {
+      onImagesSelect(files);
     }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      onImageSelect(file);
+    const files = e.target.files ? Array.from(e.target.files).slice(0, 4) : [];
+    if (files.length > 0) {
+      onImagesSelect(files);
     }
   };
 
@@ -44,7 +44,7 @@ export const ImageUploader = ({ onImageSelect, selectedImage, onClear }: ImageUp
 
   return (
     <div className="w-full">
-      {!selectedImage ? (
+      {selectedImages.length === 0 ? (
         <div
           onClick={handleClick}
           onDragOver={handleDragOver}
@@ -61,9 +61,9 @@ export const ImageUploader = ({ onImageSelect, selectedImage, onClear }: ImageUp
               <Upload className="h-8 w-8 text-primary-foreground" />
             </div>
             <div>
-              <h3 className="text-xl font-semibold mb-2">Upload Your Image</h3>
+              <h3 className="text-xl font-semibold mb-2">Upload Your Images</h3>
               <p className="text-muted-foreground">
-                Drag & drop or click to select an image
+                Drag & drop or click to select up to 4 images
               </p>
             </div>
           </div>
@@ -71,25 +71,30 @@ export const ImageUploader = ({ onImageSelect, selectedImage, onClear }: ImageUp
             ref={fileInputRef}
             type="file"
             accept="image/*"
+            multiple
             onChange={handleFileSelect}
             className="hidden"
           />
         </div>
       ) : (
-        <div className="glass rounded-2xl p-4 relative">
-          <Button
-            onClick={onClear}
-            variant="destructive"
-            size="icon"
-            className="absolute top-2 right-2 z-10 shadow-lg"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-          <img
-            src={URL.createObjectURL(selectedImage)}
-            alt="Selected"
-            className="w-full h-auto rounded-xl"
-          />
+        <div className="grid grid-cols-2 gap-4">
+          {selectedImages.map((image, index) => (
+            <div key={index} className="glass rounded-2xl p-4 relative">
+              <Button
+                onClick={() => onClear(index)}
+                variant="destructive"
+                size="icon"
+                className="absolute top-2 right-2 z-10 shadow-lg"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+              <img
+                src={URL.createObjectURL(image)}
+                alt={`Selected ${index + 1}`}
+                className="w-full h-auto rounded-xl"
+              />
+            </div>
+          ))}
         </div>
       )}
     </div>
