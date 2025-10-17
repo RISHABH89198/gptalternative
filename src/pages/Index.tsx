@@ -8,17 +8,17 @@ import { Wand2 } from "lucide-react";
 
 const Index = () => {
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
-  const [generatedImageUrls, setGeneratedImageUrls] = useState<string[]>([]);
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleImagesSelect = (files: File[]) => {
     setSelectedImages(files);
-    setGeneratedImageUrls([]);
+    setGeneratedImageUrl(null);
   };
 
   const handleClearImage = (index: number) => {
     setSelectedImages(prev => prev.filter((_, i) => i !== index));
-    setGeneratedImageUrls([]);
+    setGeneratedImageUrl(null);
   };
 
   const handleGenerate = async (prompt: string) => {
@@ -28,38 +28,38 @@ const Index = () => {
     }
 
     setIsLoading(true);
-    const urls: string[] = [];
     
     try {
-      for (const image of selectedImages) {
-        const base64Image = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.readAsDataURL(image);
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = reject;
-        });
+      // Convert all images to base64
+      const base64Images = await Promise.all(
+        selectedImages.map(image => 
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(image);
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+          })
+        )
+      );
 
-        const { data, error } = await supabase.functions.invoke('generate-image', {
-          body: {
-            imageData: base64Image,
-            prompt: prompt
-          }
-        });
-
-        if (error) throw error;
-
-        if (data?.imageUrl) {
-          urls.push(data.imageUrl);
-        } else {
-          throw new Error("No image URL in response");
+      const { data, error } = await supabase.functions.invoke('generate-image', {
+        body: {
+          images: base64Images,
+          prompt: prompt
         }
-      }
+      });
 
-      setGeneratedImageUrls(urls);
-      toast.success(`${urls.length} image(s) generated successfully!`);
+      if (error) throw error;
+
+      if (data?.imageUrl) {
+        setGeneratedImageUrl(data.imageUrl);
+        toast.success("Image generated successfully!");
+      } else {
+        throw new Error("No image URL in response");
+      }
     } catch (error: any) {
       console.error('Generation error:', error);
-      toast.error(error.message || "Failed to generate images");
+      toast.error(error.message || "Failed to generate image");
     } finally {
       setIsLoading(false);
     }
@@ -95,12 +95,8 @@ const Index = () => {
             <PromptInput onGenerate={handleGenerate} isLoading={isLoading} />
           )}
 
-          {generatedImageUrls.length > 0 && (
-            <div className="grid grid-cols-2 gap-4">
-              {generatedImageUrls.map((url, index) => (
-                <GeneratedImage key={index} imageUrl={url} />
-              ))}
-            </div>
+          {generatedImageUrl && (
+            <GeneratedImage imageUrl={generatedImageUrl} />
           )}
         </div>
 

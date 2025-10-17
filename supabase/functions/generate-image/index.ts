@@ -11,10 +11,10 @@ serve(async (req) => {
   }
 
   try {
-    const { imageData, prompt } = await req.json();
+    const { images, prompt } = await req.json();
     
-    if (!imageData || !prompt) {
-      throw new Error('Missing imageData or prompt');
+    if (!images || !Array.isArray(images) || images.length === 0 || !prompt) {
+      throw new Error('Missing images array or prompt');
     }
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -22,7 +22,21 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    console.log('Generating HD image with prompt:', prompt);
+    console.log('Generating HD image from', images.length, 'images with prompt:', prompt);
+
+    // Build content array with prompt text and all images
+    const content = [
+      {
+        type: 'text',
+        text: `${prompt}. Merge/combine these ${images.length} images creatively based on the prompt. Generate in high definition with maximum quality and detail.`
+      },
+      ...images.map((imageData: string) => ({
+        type: 'image_url',
+        image_url: {
+          url: imageData
+        }
+      }))
+    ];
 
     // Call Lovable AI image generation endpoint with HD quality
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -36,18 +50,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: `${prompt}. Generate in high definition with maximum quality and detail.`
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: imageData
-                }
-              }
-            ]
+            content: content
           }
         ],
         modalities: ['image', 'text']
