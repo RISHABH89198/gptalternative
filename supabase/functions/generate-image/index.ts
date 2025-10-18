@@ -28,7 +28,9 @@ serve(async (req) => {
     const content = [
       {
         type: 'text',
-        text: `${prompt}. Merge/combine these ${images.length} images creatively based on the prompt. Generate in high definition with maximum quality and detail.`
+        text: `IMPORTANT: Generate an ultra high definition, full HD quality image. Follow these exact instructions: ${prompt}. 
+
+Use these ${images.length} image(s) and create output exactly as described in the prompt. The prompt may be in any language including Hindi - follow it precisely. Generate with maximum quality, detail, and resolution. Ultra high resolution output required.`
       },
       ...images.map((imageData: string) => ({
         type: 'image_url',
