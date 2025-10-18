@@ -24,13 +24,30 @@ serve(async (req) => {
 
     console.log('Generating HD image from', images.length, 'images with prompt:', prompt);
 
-    // Build content array with prompt text and all images
+    // Build content array with prompt text and all images with maximum quality settings
     const content = [
       {
         type: 'text',
-        text: `IMPORTANT: Generate an ultra high definition, full HD quality image. Follow these exact instructions: ${prompt}. 
+        text: `CRITICAL INSTRUCTIONS - MAXIMUM QUALITY REQUIRED:
 
-Use these ${images.length} image(s) and create output exactly as described in the prompt. The prompt may be in any language including Hindi - follow it precisely. Generate with maximum quality, detail, and resolution. Ultra high resolution output required.`
+1. Generate image in ULTRA HIGH DEFINITION with MAXIMUM resolution and quality
+2. Use EXTREME attention to detail - every element must be sharp, clear, and well-defined
+3. Apply professional-grade rendering with perfect lighting, shadows, and textures
+4. Ensure photorealistic quality with natural colors and accurate proportions
+5. Create output with ZERO artifacts, noise, or quality degradation
+
+USER REQUEST: ${prompt}
+
+Follow the user's instructions PRECISELY and exactly as described. The prompt may be in any language including Hindi - interpret and execute it perfectly.
+
+Use all ${images.length} provided image(s) as reference and create the output exactly as specified in the user request.
+
+OUTPUT REQUIREMENTS:
+- Ultra high resolution (maximum possible quality)
+- Professional photorealistic rendering
+- Perfect detail and clarity
+- Natural lighting and colors
+- Zero compression artifacts`
       },
       ...images.map((imageData: string) => ({
         type: 'image_url',
