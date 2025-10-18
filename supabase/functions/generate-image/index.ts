@@ -35,6 +35,9 @@ serve(async (req) => {
 3. Apply professional-grade rendering with perfect lighting, shadows, and textures
 4. Ensure photorealistic quality with natural colors and accurate proportions
 5. Create output with ZERO artifacts, noise, or quality degradation
+6. ABSOLUTELY NO watermarks, logos, signatures, or "AI generated" text of any kind
+7. REMOVE any existing watermarks or text overlays from the output
+8. The final image must be completely clean without any branding or text markers
 
 USER REQUEST: ${prompt}
 
@@ -47,7 +50,9 @@ OUTPUT REQUIREMENTS:
 - Professional photorealistic rendering
 - Perfect detail and clarity
 - Natural lighting and colors
-- Zero compression artifacts`
+- Zero compression artifacts
+- NO watermarks, logos, or AI-generated markers
+- Completely clean and professional output`
       },
       ...images.map((imageData: string) => ({
         type: 'image_url',
