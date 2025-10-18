@@ -48,7 +48,7 @@ Use these ${images.length} image(s) and create output exactly as described in th
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-pro-image-preview',
+        model: 'google/gemini-2.5-flash-image-preview',
         messages: [
           {
             role: 'user',
