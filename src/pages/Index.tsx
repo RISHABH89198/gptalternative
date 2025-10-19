@@ -4,7 +4,9 @@ import { PromptInput } from "@/components/PromptInput";
 import { GeneratedImage } from "@/components/GeneratedImage";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Wand2 } from "lucide-react";
+import { Wand2, Download } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
@@ -71,6 +73,16 @@ const Index = () => {
   return (
     <div className="min-h-screen py-12 px-4">
       <div className="max-w-4xl mx-auto space-y-8">
+        {/* Install Button */}
+        <div className="flex justify-end">
+          <Link to="/install">
+            <Button variant="outline" size="sm" className="gap-2">
+              <Download className="h-4 w-4" />
+              Install App
+            </Button>
+          </Link>
+        </div>
+
         {/* Header */}
         <div className="text-center space-y-4 animate-in fade-in slide-in-from-top duration-700">
           <div className="flex justify-center">
