@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ImageUploader } from "@/components/ImageUploader";
 import { PromptInput } from "@/components/PromptInput";
 import { GeneratedImage } from "@/components/GeneratedImage";
+import { ColorGrading } from "@/components/ColorGrading";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Wand2, Download } from "lucide-react";
@@ -107,7 +108,15 @@ const Index = () => {
           />
 
           {selectedImages.length > 0 && (
-            <PromptInput onGenerate={handleGenerate} isLoading={isLoading} />
+            <>
+              <PromptInput onGenerate={handleGenerate} isLoading={isLoading} />
+              
+              <ColorGrading 
+                onApplyGrading={handleGenerate}
+                isLoading={isLoading}
+                disabled={selectedImages.length === 0}
+              />
+            </>
           )}
 
           {generatedImageUrl && (
