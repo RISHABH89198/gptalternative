@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ImageUploader } from "@/components/ImageUploader";
 import { GeneratedImage } from "@/components/GeneratedImage";
 import { ColorGrading } from "@/components/ColorGrading";
@@ -7,11 +7,13 @@ import { toast } from "sonner";
 import { Palette, Home } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 
 const ColorGrade = () => {
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   const handleImagesSelect = (files: File[]) => {
     // Only allow 1 image for color grading
@@ -31,6 +33,18 @@ const ColorGrade = () => {
     }
 
     setIsLoading(true);
+    setProgress(0);
+    
+    // Simulate progress for better UX
+    const progressInterval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 90) {
+          clearInterval(progressInterval);
+          return 90;
+        }
+        return prev + 10;
+      });
+    }, 500);
     
     try {
       // Convert all images to base64
@@ -55,16 +69,22 @@ const ColorGrade = () => {
       if (error) throw error;
 
       if (data?.imageUrl) {
+        clearInterval(progressInterval);
+        setProgress(100);
         setGeneratedImageUrl(data.imageUrl);
         toast.success("Color grading applied successfully!");
       } else {
         throw new Error("No image URL in response");
       }
     } catch (error: any) {
+      clearInterval(progressInterval);
       console.error('Generation error:', error);
       toast.error(error.message || "Failed to apply color grading");
     } finally {
-      setIsLoading(false);
+      setTimeout(() => {
+        setIsLoading(false);
+        setProgress(0);
+      }, 500);
     }
   };
 
@@ -107,11 +127,26 @@ const ColorGrade = () => {
           />
 
           {selectedImages.length > 0 && (
-            <ColorGrading 
-              onApplyGrading={handleGenerate}
-              isLoading={isLoading}
-              disabled={selectedImages.length === 0}
-            />
+            <>
+              {isLoading && (
+                <div className="glass p-6 space-y-4 animate-in fade-in">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Applying color grading...</span>
+                    <span className="text-sm text-muted-foreground">{progress}%</span>
+                  </div>
+                  <Progress value={progress} className="h-2" />
+                  <p className="text-xs text-center text-muted-foreground">
+                    This may take 10-15 seconds. Please wait...
+                  </p>
+                </div>
+              )}
+              
+              <ColorGrading 
+                onApplyGrading={handleGenerate}
+                isLoading={isLoading}
+                disabled={selectedImages.length === 0}
+              />
+            </>
           )}
 
           {generatedImageUrl && (
