@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Wand2, Download } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 
 const Index = () => {
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
@@ -109,28 +109,15 @@ const Index = () => {
           />
 
           {selectedImages.length > 0 && (
-            <Tabs defaultValue="prompt" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-card/50">
-                <TabsTrigger value="prompt" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                  Custom Prompt
-                </TabsTrigger>
-                <TabsTrigger value="grading" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                  Color Grading
-                </TabsTrigger>
-              </TabsList>
+            <>
+              <PromptInput onGenerate={handleGenerate} isLoading={isLoading} />
               
-              <TabsContent value="prompt" className="mt-4">
-                <PromptInput onGenerate={handleGenerate} isLoading={isLoading} />
-              </TabsContent>
-              
-              <TabsContent value="grading" className="mt-4">
-                <ColorGrading 
-                  onApplyGrading={handleGenerate}
-                  isLoading={isLoading}
-                  disabled={selectedImages.length === 0}
-                />
-              </TabsContent>
-            </Tabs>
+              <ColorGrading 
+                onApplyGrading={handleGenerate}
+                isLoading={isLoading}
+                disabled={selectedImages.length === 0}
+              />
+            </>
           )}
 
           {generatedImageUrl && (

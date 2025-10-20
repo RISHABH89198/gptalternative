@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Palette, Sun, Moon, Film, Sparkles, Mountain, Coffee } from "lucide-react";
+import { Palette, Sun, Moon, Film, Sparkles, Mountain, Coffee, MonitorUp, Zap } from "lucide-react";
 
 interface ColorGradingProps {
   onApplyGrading: (gradingType: string) => void;
@@ -50,6 +50,20 @@ const gradingPresets = [
     icon: Mountain,
     description: "Enhanced natural look",
     prompt: "Apply natural HDR color grading with balanced exposure, enhanced dynamic range, natural color reproduction, perfect white balance, and professional landscape photography look."
+  },
+  {
+    id: "4k-hdr",
+    name: "4K HDR Ultra",
+    icon: MonitorUp,
+    description: "Maximum quality enhancement",
+    prompt: "Enhance to 4K HDR quality with ultra-high definition details, maximum sharpness, professional color depth, expanded dynamic range, perfect clarity, enhanced texture details, and cinematic 4K resolution quality."
+  },
+  {
+    id: "ultra-sharp",
+    name: "Ultra Sharp",
+    icon: Zap,
+    description: "Crystal clear enhancement",
+    prompt: "Apply ultra-sharp enhancement with maximum detail clarity, professional sharpening, enhanced edge definition, crystal clear focus, texture enhancement, and high-definition quality improvement."
   }
 ];
 
