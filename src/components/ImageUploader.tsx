@@ -6,9 +6,11 @@ interface ImageUploaderProps {
   onImagesSelect: (files: File[]) => void;
   selectedImages: File[];
   onClear: (index: number) => void;
+  maxImages?: number;
+  singleImageText?: string;
 }
 
-export const ImageUploader = ({ onImagesSelect, selectedImages, onClear }: ImageUploaderProps) => {
+export const ImageUploader = ({ onImagesSelect, selectedImages, onClear, maxImages = 4, singleImageText }: ImageUploaderProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -63,9 +65,14 @@ export const ImageUploader = ({ onImagesSelect, selectedImages, onClear }: Image
               <Upload className="h-8 w-8 text-primary-foreground" />
             </div>
             <div>
-              <h3 className="text-xl font-semibold mb-2">Upload Your Images</h3>
+              <h3 className="text-xl font-semibold mb-2">
+                {maxImages === 1 ? (singleImageText || "Upload Your Image") : "Upload Your Images"}
+              </h3>
               <p className="text-muted-foreground">
-                Drag & drop or click to select up to 4 images
+                {maxImages === 1 
+                  ? "Drag & drop or click to select an image"
+                  : `Drag & drop or click to select up to ${maxImages} images`
+                }
               </p>
             </div>
           </div>
@@ -73,7 +80,7 @@ export const ImageUploader = ({ onImagesSelect, selectedImages, onClear }: Image
             ref={fileInputRef}
             type="file"
             accept="image/*"
-            multiple
+            multiple={maxImages > 1}
             onChange={handleFileSelect}
             className="hidden"
           />
@@ -99,7 +106,7 @@ export const ImageUploader = ({ onImagesSelect, selectedImages, onClear }: Image
               </div>
             ))}
           </div>
-          {selectedImages.length < 4 && (
+          {selectedImages.length < maxImages && (
             <div
               onClick={handleClick}
               onDragOver={handleDragOver}
@@ -114,7 +121,7 @@ export const ImageUploader = ({ onImagesSelect, selectedImages, onClear }: Image
               <div className="flex flex-col items-center gap-3">
                 <Upload className="h-6 w-6 text-primary" />
                 <p className="text-sm text-muted-foreground">
-                  Add more images ({selectedImages.length}/4)
+                  Add more images ({selectedImages.length}/{maxImages})
                 </p>
               </div>
             </div>
@@ -123,7 +130,7 @@ export const ImageUploader = ({ onImagesSelect, selectedImages, onClear }: Image
             ref={fileInputRef}
             type="file"
             accept="image/*"
-            multiple
+            multiple={maxImages > 1}
             onChange={handleFileSelect}
             className="hidden"
           />

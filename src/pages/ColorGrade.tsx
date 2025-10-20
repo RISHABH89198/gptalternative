@@ -14,10 +14,8 @@ const ColorGrade = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleImagesSelect = (files: File[]) => {
-    setSelectedImages(prev => {
-      const newImages = [...prev, ...files];
-      return newImages.slice(0, 4); // Max 4 images
-    });
+    // Only allow 1 image for color grading
+    setSelectedImages([files[0]]);
     setGeneratedImageUrl(null);
   };
 
@@ -104,6 +102,8 @@ const ColorGrade = () => {
             onImagesSelect={handleImagesSelect}
             selectedImages={selectedImages}
             onClear={handleClearImage}
+            maxImages={1}
+            singleImageText="Upload Your Image for Colour Grade"
           />
 
           {selectedImages.length > 0 && (
