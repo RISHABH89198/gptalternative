@@ -1,15 +1,14 @@
 import { useState } from "react";
 import { ImageUploader } from "@/components/ImageUploader";
-import { PromptInput } from "@/components/PromptInput";
 import { GeneratedImage } from "@/components/GeneratedImage";
+import { ColorGrading } from "@/components/ColorGrading";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Wand2, Download, Palette } from "lucide-react";
+import { Palette, Home } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
-
-const Index = () => {
+const ColorGrade = () => {
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -59,13 +58,13 @@ const Index = () => {
 
       if (data?.imageUrl) {
         setGeneratedImageUrl(data.imageUrl);
-        toast.success("Image generated successfully!");
+        toast.success("Color grading applied successfully!");
       } else {
         throw new Error("No image URL in response");
       }
     } catch (error: any) {
       console.error('Generation error:', error);
-      toast.error(error.message || "Failed to generate image");
+      toast.error(error.message || "Failed to apply color grading");
     } finally {
       setIsLoading(false);
     }
@@ -74,18 +73,12 @@ const Index = () => {
   return (
     <div className="min-h-screen py-12 px-4">
       <div className="max-w-4xl mx-auto space-y-8">
-        {/* Header Buttons */}
-        <div className="flex justify-end gap-2">
-          <Link to="/color-grade">
+        {/* Header with Home Button */}
+        <div className="flex justify-end">
+          <Link to="/">
             <Button variant="outline" size="sm" className="gap-2">
-              <Palette className="h-4 w-4" />
-              Color Grade
-            </Button>
-          </Link>
-          <Link to="/install">
-            <Button variant="outline" size="sm" className="gap-2">
-              <Download className="h-4 w-4" />
-              Install App
+              <Home className="h-4 w-4" />
+              Home
             </Button>
           </Link>
         </div>
@@ -94,14 +87,14 @@ const Index = () => {
         <div className="text-center space-y-4 animate-in fade-in slide-in-from-top duration-700">
           <div className="flex justify-center">
             <div className="rounded-full bg-gradient-primary p-3 shadow-glow">
-              <Wand2 className="h-8 w-8 text-primary-foreground" />
+              <Palette className="h-8 w-8 text-primary-foreground" />
             </div>
           </div>
           <h1 className="text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            AI Image Generator
+            Color Grade Your Image
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Upload an image and describe your vision. Watch as AI transforms it into something magical.
+            Upload your image for colour grade. Choose from professional presets for instant enhancement.
           </p>
         </div>
 
@@ -114,7 +107,11 @@ const Index = () => {
           />
 
           {selectedImages.length > 0 && (
-            <PromptInput onGenerate={handleGenerate} isLoading={isLoading} />
+            <ColorGrading 
+              onApplyGrading={handleGenerate}
+              isLoading={isLoading}
+              disabled={selectedImages.length === 0}
+            />
           )}
 
           {generatedImageUrl && (
@@ -131,4 +128,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default ColorGrade;
