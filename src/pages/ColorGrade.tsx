@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 
 const ColorGrade = () => {
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -19,11 +20,21 @@ const ColorGrade = () => {
     // Only allow 1 image for color grading
     setSelectedImages([files[0]]);
     setGeneratedImageUrl(null);
+    
+    // Create preview URL for original image
+    if (files[0]) {
+      const previewUrl = URL.createObjectURL(files[0]);
+      setOriginalImageUrl(previewUrl);
+    }
   };
 
   const handleClearImage = (index: number) => {
     setSelectedImages(prev => prev.filter((_, i) => i !== index));
     setGeneratedImageUrl(null);
+    if (originalImageUrl) {
+      URL.revokeObjectURL(originalImageUrl);
+      setOriginalImageUrl(null);
+    }
   };
 
   const handleGenerate = async (prompt: string) => {
@@ -149,8 +160,29 @@ const ColorGrade = () => {
             </>
           )}
 
-          {generatedImageUrl && (
-            <GeneratedImage imageUrl={generatedImageUrl} />
+          {generatedImageUrl && originalImageUrl && (
+            <div className="space-y-4 animate-in fade-in duration-500">
+              <h2 className="text-2xl font-bold text-center">Compare Results</h2>
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Original Image */}
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold text-center text-muted-foreground">Original</h3>
+                  <div className="glass rounded-2xl p-4 shadow-card">
+                    <img
+                      src={originalImageUrl}
+                      alt="Original"
+                      className="w-full h-auto rounded-xl"
+                    />
+                  </div>
+                </div>
+                
+                {/* Color Graded Image */}
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold text-center text-primary">Color Graded</h3>
+                  <GeneratedImage imageUrl={generatedImageUrl} />
+                </div>
+              </div>
+            </div>
           )}
         </div>
 
