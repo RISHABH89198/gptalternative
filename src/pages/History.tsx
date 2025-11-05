@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { History as HistoryIcon, Trash2, ArrowLeft } from "lucide-react";
+import { History as HistoryIcon, Trash2, ArrowLeft, RefreshCw, Edit } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 interface ImageHistory {
@@ -17,6 +19,8 @@ const History = () => {
   const navigate = useNavigate();
   const [history, setHistory] = useState<ImageHistory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [editPrompt, setEditPrompt] = useState("");
+  const [selectedItem, setSelectedItem] = useState<ImageHistory | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -56,6 +60,33 @@ const History = () => {
       toast.success("Deleted successfully");
       setHistory(history.filter((item) => item.id !== id));
     }
+  };
+
+  const handleRegenerate = (item: ImageHistory) => {
+    const cleanPrompt = item.prompt.replace(/^Color Grade: /, "");
+    
+    if (item.original_image_url) {
+      // It's a color grade, navigate to color-grade page
+      navigate("/color-grade", { state: { regeneratePrompt: cleanPrompt } });
+    } else {
+      // It's a regular generation, navigate to index page
+      navigate("/", { state: { regeneratePrompt: cleanPrompt } });
+    }
+  };
+
+  const handleEditRegenerate = () => {
+    if (!selectedItem || !editPrompt.trim()) return;
+
+    if (selectedItem.original_image_url) {
+      navigate("/color-grade", { state: { regeneratePrompt: editPrompt } });
+    } else {
+      navigate("/", { state: { regeneratePrompt: editPrompt } });
+    }
+  };
+
+  const openEditDialog = (item: ImageHistory) => {
+    setSelectedItem(item);
+    setEditPrompt(item.prompt.replace(/^Color Grade: /, ""));
   };
 
   return (
@@ -103,6 +134,49 @@ const History = () => {
                   <p className="text-xs text-muted-foreground">
                     {new Date(item.created_at).toLocaleDateString()}
                   </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => handleRegenerate(item)}
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Regenerate
+                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => openEditDialog(item)}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Edit Prompt</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <Textarea
+                          value={editPrompt}
+                          onChange={(e) => setEditPrompt(e.target.value)}
+                          placeholder="Modify your prompt..."
+                          className="min-h-[120px]"
+                        />
+                        <Button
+                          onClick={handleEditRegenerate}
+                          className="w-full bg-gradient-primary"
+                        >
+                          Regenerate with New Prompt
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
                 <Button
                   variant="destructive"

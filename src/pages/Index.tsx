@@ -5,17 +5,19 @@ import { GeneratedImage } from "@/components/GeneratedImage";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Wand2, Download, Palette, History, LogOut, LogIn } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { User } from "@supabase/supabase-js";
 
 
 const Index = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [promptValue, setPromptValue] = useState("");
 
   useEffect(() => {
     // Check current session
@@ -30,6 +32,15 @@ const Index = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    // Check if there's a regenerate prompt from history
+    if (location.state?.regeneratePrompt) {
+      setPromptValue(location.state.regeneratePrompt);
+      // Clear the state after setting
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   const handleImagesSelect = (files: File[]) => {
     setSelectedImages(prev => {
@@ -170,7 +181,7 @@ const Index = () => {
           />
 
           {selectedImages.length > 0 && (
-            <PromptInput onGenerate={handleGenerate} isLoading={isLoading} />
+            <PromptInput onGenerate={handleGenerate} isLoading={isLoading} initialPrompt={promptValue} />
           )}
 
           {generatedImageUrl && (

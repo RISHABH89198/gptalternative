@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Palette, Sun, Moon, Film, Sparkles, Mountain, Coffee, MonitorUp, Zap } from "lucide-react";
@@ -6,6 +7,7 @@ interface ColorGradingProps {
   onApplyGrading: (gradingType: string) => void;
   isLoading: boolean;
   disabled: boolean;
+  initialPrompt?: string;
 }
 
 const gradingPresets = [
@@ -67,7 +69,17 @@ const gradingPresets = [
   }
 ];
 
-export const ColorGrading = ({ onApplyGrading, isLoading, disabled }: ColorGradingProps) => {
+export const ColorGrading = ({ onApplyGrading, isLoading, disabled, initialPrompt = "" }: ColorGradingProps) => {
+  const [hasAutoApplied, setHasAutoApplied] = useState(false);
+
+  useEffect(() => {
+    // Auto-apply if there's an initial prompt and we haven't applied it yet
+    if (initialPrompt && !hasAutoApplied) {
+      onApplyGrading(initialPrompt);
+      setHasAutoApplied(true);
+    }
+  }, [initialPrompt, hasAutoApplied, onApplyGrading]);
+
   return (
     <Card className="glass p-6 space-y-4 animate-in fade-in slide-in-from-bottom duration-500">
       <div className="flex items-center gap-3">

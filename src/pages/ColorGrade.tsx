@@ -5,12 +5,14 @@ import { ColorGrading } from "@/components/ColorGrading";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Palette, Home } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { User } from "@supabase/supabase-js";
 
 const ColorGrade = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
@@ -18,6 +20,7 @@ const ColorGrade = () => {
   const [progress, setProgress] = useState(0);
   const [user, setUser] = useState<User | null>(null);
   const [currentPrompt, setCurrentPrompt] = useState<string>("");
+  const [promptValue, setPromptValue] = useState("");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -30,6 +33,15 @@ const ColorGrade = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    // Check if there's a regenerate prompt from history
+    if (location.state?.regeneratePrompt) {
+      setPromptValue(location.state.regeneratePrompt);
+      // Clear the state after setting
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   const handleImagesSelect = (files: File[]) => {
     // Only allow 1 image for color grading
@@ -188,6 +200,7 @@ const ColorGrade = () => {
                 onApplyGrading={handleGenerate}
                 isLoading={isLoading}
                 disabled={selectedImages.length === 0}
+                initialPrompt={promptValue}
               />
             </>
           )}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -6,10 +6,17 @@ import { Textarea } from "@/components/ui/textarea";
 interface PromptInputProps {
   onGenerate: (prompt: string) => void;
   isLoading: boolean;
+  initialPrompt?: string;
 }
 
-export const PromptInput = ({ onGenerate, isLoading }: PromptInputProps) => {
-  const [prompt, setPrompt] = useState("");
+export const PromptInput = ({ onGenerate, isLoading, initialPrompt = "" }: PromptInputProps) => {
+  const [prompt, setPrompt] = useState(initialPrompt);
+
+  useEffect(() => {
+    if (initialPrompt) {
+      setPrompt(initialPrompt);
+    }
+  }, [initialPrompt]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
