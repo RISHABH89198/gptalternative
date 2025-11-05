@@ -8,6 +8,7 @@ import { Palette, Home } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { User } from "@supabase/supabase-js";
 
 const ColorGrade = () => {
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
@@ -15,6 +16,20 @@ const ColorGrade = () => {
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [user, setUser] = useState<User | null>(null);
+  const [currentPrompt, setCurrentPrompt] = useState<string>("");
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleImagesSelect = (files: File[]) => {
     // Only allow 1 image for color grading
@@ -39,63 +54,80 @@ const ColorGrade = () => {
 
   const handleGenerate = async (prompt: string) => {
     if (selectedImages.length === 0) {
-      toast.error("Please upload at least one image first");
+      toast.error("Please upload an image first");
       return;
     }
 
     setIsLoading(true);
     setProgress(0);
-    
-    // Simulate progress for better UX
+    setCurrentPrompt(prompt);
+
+    // Simulate progress
     const progressInterval = setInterval(() => {
-      setProgress((prev) => {
+      setProgress(prev => {
         if (prev >= 90) {
           clearInterval(progressInterval);
           return 90;
         }
         return prev + 10;
       });
-    }, 500);
+    }, 1500);
     
     try {
-      // Convert all images to base64
-      const base64Images = await Promise.all(
-        selectedImages.map(image => 
-          new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(image);
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = reject;
-          })
-        )
-      );
+      // Convert image to base64
+      const base64Image = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(selectedImages[0]);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+      });
+
+      console.log('Sending color grading request with prompt:', prompt);
 
       const { data, error } = await supabase.functions.invoke('generate-image', {
         body: {
-          images: base64Images,
-          prompt: prompt
+          images: [base64Image],
+          prompt: `Apply professional color grading to this image: ${prompt}. Enhance the colors, lighting, and mood while maintaining the original composition. Output a high quality color graded version.`
         }
       });
 
-      if (error) throw error;
+      clearInterval(progressInterval);
+      setProgress(100);
+
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
+
+      console.log('Color grading response:', data);
 
       if (data?.imageUrl) {
-        clearInterval(progressInterval);
-        setProgress(100);
         setGeneratedImageUrl(data.imageUrl);
         toast.success("Color grading applied successfully!");
+
+        // Save to history if user is logged in
+        if (user) {
+          const { error: saveError } = await supabase.from("image_history").insert({
+            user_id: user.id,
+            original_image_url: originalImageUrl,
+            generated_image_url: data.imageUrl,
+            prompt: `Color Grade: ${prompt}`,
+          });
+
+          if (saveError) {
+            console.error("Failed to save to history:", saveError);
+          }
+        }
       } else {
         throw new Error("No image URL in response");
       }
     } catch (error: any) {
-      clearInterval(progressInterval);
-      console.error('Generation error:', error);
+      console.error('Color grading error:', error);
       toast.error(error.message || "Failed to apply color grading");
+      clearInterval(progressInterval);
     } finally {
-      setTimeout(() => {
-        setIsLoading(false);
-        setProgress(0);
-      }, 500);
+      setIsLoading(false);
+      setTimeout(() => setProgress(0), 1000);
     }
   };
 

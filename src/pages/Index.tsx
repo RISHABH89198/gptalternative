@@ -1,18 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ImageUploader } from "@/components/ImageUploader";
 import { PromptInput } from "@/components/PromptInput";
 import { GeneratedImage } from "@/components/GeneratedImage";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Wand2, Download, Palette } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Wand2, Download, Palette, History, LogOut, LogIn } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { User } from "@supabase/supabase-js";
 
 
 const Index = () => {
+  const navigate = useNavigate();
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    // Check current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleImagesSelect = (files: File[]) => {
     setSelectedImages(prev => {
@@ -60,6 +77,19 @@ const Index = () => {
       if (data?.imageUrl) {
         setGeneratedImageUrl(data.imageUrl);
         toast.success("Image generated successfully!");
+
+        // Save to history if user is logged in
+        if (user) {
+          const { error: saveError } = await supabase.from("image_history").insert({
+            user_id: user.id,
+            generated_image_url: data.imageUrl,
+            prompt: prompt,
+          });
+
+          if (saveError) {
+            console.error("Failed to save to history:", saveError);
+          }
+        }
       } else {
         throw new Error("No image URL in response");
       }
@@ -69,6 +99,11 @@ const Index = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast.success("Logged out successfully");
   };
 
   return (
@@ -82,12 +117,33 @@ const Index = () => {
               Color Grade
             </Button>
           </Link>
+          {user && (
+            <Link to="/history">
+              <Button variant="outline" size="sm" className="gap-2">
+                <History className="h-4 w-4" />
+                History
+              </Button>
+            </Link>
+          )}
           <Link to="/install">
             <Button variant="outline" size="sm" className="gap-2">
               <Download className="h-4 w-4" />
               Install App
             </Button>
           </Link>
+          {user ? (
+            <Button variant="outline" size="sm" className="gap-2" onClick={handleLogout}>
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Button>
+          ) : (
+            <Link to="/auth">
+              <Button variant="outline" size="sm" className="gap-2">
+                <LogIn className="h-4 w-4" />
+                Login
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* Header */}
