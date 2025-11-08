@@ -18,6 +18,8 @@ import MobileNotice from "./components/MobileNotice";
 
 
 
+
+
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -27,6 +29,7 @@ const App = () => {
         <Toaster />
 
         <MobileNotice />
+
 
         <BrowserRouter>
           <Navbar /> {/* ✅ Navbar yaha = bas ek baar */}
