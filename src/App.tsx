@@ -10,7 +10,12 @@ import Auth from "./pages/Auth";
 import History from "./pages/History";
 import NotFound from "./pages/NotFound";
 
-import Navbar from "./components/Navbar";
+import Navbar from "./components/navbar";
+
+import MobileNotice from "./components/mobileNotice";
+
+
+
 
 const queryClient = new QueryClient();
 
@@ -19,6 +24,8 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
+        
+        <MobileNotice />
 
         <BrowserRouter>
           <Navbar /> {/* ✅ Navbar yaha = bas ek baar */}
