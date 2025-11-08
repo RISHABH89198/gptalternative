@@ -12,7 +12,8 @@ import NotFound from "./pages/NotFound";
 
 import Navbar from "./components/navbar";
 
-import MobileNotice from "./components/mobileNotice";
+import MobileNotice from "./components/MobileNotice";
+
 
 
 
@@ -24,7 +25,7 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        
+
         <MobileNotice />
 
         <BrowserRouter>
